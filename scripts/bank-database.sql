@@ -28,3 +28,5 @@ insert into ledger(uuid, source, target, quantity, created)
 values ('fd946d15-7f3c-4a81-a96e-1e48044b17f7', '', '456987', 100, sysdate());
 insert into ledger(uuid, source, target, quantity, created)
 values ('fd946d16-7f3c-4a81-a96e-1e48044b17f7', '456987', '963741', 50, sysdate());
+insert into ledger(uuid, source, target, quantity, created)
+values ('fd947d16-7f3c-5a81-a96e-1e48044b17f3', '456987', '963741', 25, sysdate());
