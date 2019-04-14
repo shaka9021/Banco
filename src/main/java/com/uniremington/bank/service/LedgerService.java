@@ -1,5 +1,6 @@
 package com.uniremington.bank.service;
 
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -16,6 +17,7 @@ import javax.ws.rs.core.Response.Status;
 
 @Path("ledger")
 @Produces(MediaType.APPLICATION_JSON)
+@RolesAllowed({"EMPLOYEE"})
 public class LedgerService {
 
     @Inject
@@ -26,9 +28,13 @@ public class LedgerService {
     public Response balance(
         @NotNull @Size(min = 5) @Pattern(regexp = "[a-z0-9]*") @PathParam("uid") String uid) {
 
-        double balance = business.balance(uid);
+        try {
+            double balance = business.balance(uid);
+            return Response.ok(new Double(balance)).build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Status.CONFLICT).build();
+        }
 
-        return Response.ok(new Double(balance)).build();
     }
 
     @POST
@@ -36,7 +42,11 @@ public class LedgerService {
     public Response record(
         @NotNull @Size(min = 5) @Pattern(regexp = "[a-z0-9]*") @PathParam("uid") String uid,
         @Min(1) @PathParam("quantity") double quantity) {
-        return Response.ok(business.record(uid, quantity)).build();
+        try {
+            return Response.ok(business.record(uid, quantity)).build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Status.CONFLICT).build();
+        }
     }
 
     @POST

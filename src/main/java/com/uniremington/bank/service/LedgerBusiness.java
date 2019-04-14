@@ -16,7 +16,13 @@ public class LedgerBusiness {
     @Inject
     private EntityManager em;
 
+    @Inject
+    private ClientBusiness client;
+
     public double balance(String uid) {
+
+        client.get(uid).orElseThrow(
+            () -> new IllegalArgumentException("the client doesn't exist"));
 
         List<LedgerDTO> sources = em.createQuery("select l from LedgerDTO as l where l.source = :source",
             LedgerDTO.class).setParameter("source", uid).getResultList();
@@ -30,6 +36,9 @@ public class LedgerBusiness {
     }
 
     public LedgerDTO record(String uid, double quantity) {
+
+        client.get(uid).orElseThrow(
+            () -> new IllegalArgumentException("the client doesn't exist"));
 
         LedgerDTO ledger = new LedgerDTO();
 
@@ -50,11 +59,33 @@ public class LedgerBusiness {
 
     public LedgerDTO transfer(String source, String target, double quantity) {
 
+        // the target and source must be diferent
+
+        if(source.equals(target)) {
+            throw new IllegalArgumentException("the source and target must be equals");
+        }
+
+        // validate that the source and target exists!
+
+        if(!"".equalsIgnoreCase(source)) {
+            client.get(source).orElseThrow(
+                () -> new IllegalArgumentException("the source doesn't exist"));
+        }
+
+        if(!"".equalsIgnoreCase(target)) {
+            client.get(target).orElseThrow(
+                () -> new IllegalArgumentException("the target doesn't exist"));
+        }
+
+        // validate that the balance of the source is greater than or equal to quantity
+
         double balance = balance(source);
 
         if (balance < quantity) {
             throw new IllegalArgumentException("insuficient balance!");
         }
+
+        // execute the transfer
 
         LedgerDTO ledger = new LedgerDTO();
 

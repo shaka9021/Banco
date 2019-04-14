@@ -1,11 +1,8 @@
 package com.uniremington.bank.service;
 
 import java.util.List;
-import java.util.Optional;
-import javax.enterprise.context.ApplicationScoped;
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -19,25 +16,23 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 @Path("client")
-@ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
-@Transactional(Transactional.TxType.REQUIRED)
+@RolesAllowed({"EMPLOYEE"})
 public class ClientService {
 
     @Inject
-    private EntityManager em;
+    private ClientBusiness client;
 
     @GET
     public List<ClientDTO> list() {
-        return em.createQuery("select c from ClientDTO as c",
-            ClientDTO.class).getResultList();
+        return client.list();
     }
 
     @GET
     @Path("/{uid}")
     public Response get(@PathParam("uid") String uid) {
 
-        return Optional.ofNullable(em.find(ClientDTO.class, uid))
+        return client.get(uid)
             .map(saved -> {
                 return Response.ok().entity(saved).build();
             }).orElseGet(
@@ -48,28 +43,20 @@ public class ClientService {
     @POST
     public Response save(@Valid ClientDTO client) {
 
-        Optional<ClientDTO> saved = Optional.ofNullable(
-            em.find(ClientDTO.class, client.getUid()));
-
-        if (saved.isPresent()) {
+        try {
+            return Response.ok().entity(this.client.save(client)).build();
+        } catch (IllegalArgumentException e) {
             return Response.status(Status.CONFLICT).build();
         }
-
-        em.persist(client);
-        return Response.ok().entity(client).build();
 
     }
 
     @PUT
     public Response update(@Valid ClientDTO client) {
 
-        return Optional.ofNullable(em.find(ClientDTO.class, client.getUid()))
+        return this.client.update(client)
             .map(saved -> {
-
-                saved.setName(client.getName());
-                em.merge(saved);
-
-                return Response.ok().entity(client).build();
+                return Response.ok().entity(saved).build();
             }).orElseGet(
                 () -> Response.status(Status.NOT_FOUND).build());
 
@@ -79,12 +66,13 @@ public class ClientService {
     @Path("/{uid}")
     public Response delete(@PathParam("uid") String uid) {
 
-        return Optional.ofNullable(em.find(ClientDTO.class, uid))
-            .map(saved -> {
-                em.remove(saved);
-                return Response.ok().entity(saved).build();
-            }).orElseGet(
-                () -> Response.status(Status.NOT_FOUND).build());
+        try {
+            return client.delete(uid)
+                .map(deleted -> Response.ok().entity(deleted).build())
+                .orElseGet(() -> Response.status(Status.NOT_FOUND).build());
+        } catch (IllegalArgumentException e) {
+            return Response.status(Status.CONFLICT).build();
+        }
 
     }
 }
