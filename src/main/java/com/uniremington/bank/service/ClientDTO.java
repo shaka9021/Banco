@@ -44,4 +44,9 @@ public class ClientDTO implements Serializable {
         this.name = name;
     }
 
+    @Override
+    public String toString() {
+        return "ClientDTO [uid=" + uid + ", name=" + name + "]";
+    }
+
 }
