@@ -1,0 +1,48 @@
+<server description="new server">
+
+    <!-- Enable features -->
+    <featureManager>
+        <feature>javaee-7.0</feature>
+        <feature>localConnector-1.0</feature>
+    </featureManager>
+
+    <!-- To access this server from a remote client add a host attribute 
+        to the following element, e.g. host="*" -->
+    <httpEndpoint httpPort="9080" httpsPort="9443" id="defaultHttpEndpoint"/>
+
+    <!-- Automatically expand WAR files and EAR files -->
+    <applicationManager autoExpand="true"/>
+
+    <keyStore id="defaultKeyStore" password="{xor}PDc+MTg6Nis="/>
+
+    <!-- mysql jdbc driver -->
+    <library id="mysql">
+        <fileset dir="${shared.resource.dir}/mysql" includes="*.jar"/>
+    </library>
+
+    <!-- declare the runtime database -->
+    <dataSource id="jdbc-bank" jndiName="jdbc/bank">
+
+        <jdbcDriver libraryRef="mysql"/>
+        <properties URL="jdbc:mysql://localhost:3306/bank?useUnicode=true&amp;useJDBCCompliantTimezoneShift=true&amp;useLegacyDatetimeCode=false&amp;serverTimezone=UTC" password="{xor}DRoJKSoqFTU=" user="bank"/>
+
+    </dataSource>
+
+    <!-- declare user registry -->
+    <basicRegistry id="basic-registry">
+
+        <user name="scorpio" password="{xor}LDwwLS82MA=="/>
+        <user name="simpson" password="{xor}LDYyLywwMQ=="/>
+
+        <group name="EMPLOYEE">
+            <member name="scorpio"/>
+            <member name="simpson"/>
+        </group>
+
+    </basicRegistry>
+
+
+    <applicationMonitor updateTrigger="mbean"/>
+
+    <webApplication contextRoot="bank-service" id="Banco" location="bank-service.war" name="Banco"/>
+</server>
